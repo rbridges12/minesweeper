@@ -18,6 +18,10 @@ WHITE = 255, 255, 255
 BACKGROUND = 200, 200, 200
 
 
+mines_flagged = 0
+tiles_revealed = 0
+
+
 # setup pygame window
 pygame.init()
 size = WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE
@@ -114,8 +118,6 @@ def draw_revealed_tile(i, j):
 
 
 def reveal_tile(i, j):
-  print(i, j)
-  print(board[i][j].value)
   draw_revealed_tile(i, j)
   if board[i][j].value == ' ':
     for r, c in get_surrounding_tiles(i,j):
@@ -197,8 +199,16 @@ while True:
                 # right clicking on an already flagged tile unflags it
                 if tile.flagged:
                   tile.flagged = False
+                  if tile.is_mine():
+                    mines_flagged -= 1
                   draw_hidden_tile(i, j)
                   
                 else:
                   tile.flagged = True
+                  if tile.is_mine():
+                    mines_flagged += 1
                   mark_mine(i, j)
+                  
+                  if mines_flagged == NUM_MINES :
+                    print('you win!')
+                    sys.exit()
