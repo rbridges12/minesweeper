@@ -13,6 +13,7 @@ NUM_MINES = 20
 FONT_SIZE = 30
 BLACK = 0, 0, 0
 RED = 255, 0, 0
+WHITE = 255, 255, 255
 BACKGROUND = 200, 200, 200
 
 
@@ -69,6 +70,8 @@ def fill_board():
                     board[i][j].value = str(count)
 
 # TODO: make colors constants
+
+
 def draw_tile(i, j):
     mines = board[i][j].value
     if mines == '1':
@@ -94,12 +97,16 @@ def draw_tile(i, j):
 
     else:
         color = (128, 128, 128)
-
+    
+    # make tile white, then write number to it
+    pygame.draw.rect(screen, WHITE, get_rect(i, j))
+    pygame.draw.rect(screen, BLACK, get_rect(i, j), 1)
     write_to_tile(i, j, mines, color)
 
 
 def mark_mine(i, j):
-  pygame.draw.rect(screen, RED, get_rect(i, j))
+    pygame.draw.rect(screen, RED, get_rect(i, j))
+
 
 # add mines randomly
 mines = NUM_MINES
@@ -122,7 +129,7 @@ for i in range(len(board)):
 # write_to_tile(3, 4, "X", (0, 100, 0))
 # mark_mine(4, 7)
 
-pygame.display.flip()
+# pygame.display.flip()
 
 # game event loop
 while True:
@@ -135,30 +142,31 @@ while True:
             mouse_location = pygame.mouse.get_pos()
             button = event.button
 
-            # left click
-            if button == 1:
-              for i, row in enumerate(board):
-                  for j, square_contents in enumerate(row):
-                      square = get_rect(i, j)
-                      if square.collidepoint(mouse_location):
+            for i, row in enumerate(board):
+                for j, tile in enumerate(row):
+                    square = get_rect(i, j)
+                    if square.collidepoint(mouse_location):
+                      
+                        # left click
+                        if button == 1:
 
-                          # mine
-                          if square_contents == 'x':
-                              print('you clicked on a mine, you lose')
-                              sys.exit()
+                            # mine
+                            if tile.is_mine():
+                                print('you clicked on a mine, you lose')
+                                sys.exit()
 
-                          # empty space
-                          elif square_contents == '0':
-                              # reveal then check surrounding tiles to see if they need to be revealed
-                              pass
+                            # empty space
+                            elif tile.value == '0':
+                                # reveal then check surrounding tiles to see if they need to be revealed
+                                pass
 
-                          # space next to mine
-                          else:
-                              draw_tile(i, j)
-            
-            # right click
-            elif button == 3:
-              board[i][j].flagged = True
-              mark_mine(i, j)
+                            # space next to mine
+                            else:
+                                print(tile.flagged)
+                                draw_tile(i, j)
 
-
+                        # right click
+                        elif button == 3:
+                            board[i][j].flagged = True
+                            print(i, j)
+                            mark_mine(i, j)
