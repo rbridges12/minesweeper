@@ -3,6 +3,7 @@ import sys
 import random
 import pygame
 import pygame.freetype
+from Tile import Tile
 
 # game constants
 WIDTH = 10
@@ -24,7 +25,7 @@ screen.fill(BACKGROUND)
 GAME_FONT = pygame.freetype.SysFont('ubuntu', FONT_SIZE)
 
 # init board
-board = [[' ' for i in range(WIDTH)] for j in range(HEIGHT)]
+board = [[Tile() for i in range(WIDTH)] for j in range(HEIGHT)]
 
 
 def get_rect(i, j):
@@ -58,18 +59,18 @@ def get_surrounding_tiles(i, j):
 def fill_board():
     for i in range(len(board)):
         for j in range(len(board[0])):
-            if board[i][j] != 'x':
+            if not board[i][j].is_mine():
                 count = 0
                 for tile in get_surrounding_tiles(i, j):
-                    if tile == 'x':
+                    if tile.is_mine():
                         count += 1
 
                 if count != 0:
-                    board[i][j] = str(count)
+                    board[i][j].value = str(count)
 
 # TODO: make colors constants
 def draw_tile(i, j):
-    mines = board[i][j]
+    mines = board[i][j].value
     if mines == '1':
         color = (0, 0, 255)
 
@@ -105,8 +106,8 @@ mines = NUM_MINES
 while mines > 0:
     x = random.randrange(0, WIDTH)
     y = random.randrange(0, HEIGHT)
-    if board[x][y] != 'x':
-        board[x][y] = 'x'
+    if not board[x][y].is_mine():
+        board[x][y].value = 'x'
         mines -= 1
 
 fill_board()
@@ -119,6 +120,7 @@ for i in range(len(board)):
 
 # GAME_FONT.render_to(screen, (0, 0), 'test', (0, 0, 0))
 # write_to_tile(3, 4, "X", (0, 100, 0))
+# mark_mine(4, 7)
 
 pygame.display.flip()
 
@@ -156,5 +158,7 @@ while True:
             
             # right click
             elif button == 3:
+              board[i][j].flagged = True
+              mark_mine(i, j)
 
 
