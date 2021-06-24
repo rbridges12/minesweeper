@@ -1,4 +1,4 @@
-from os import write
+
 import sys
 import random
 import pygame
@@ -6,11 +6,22 @@ from pygame import draw
 import pygame.freetype
 from Tile import Tile
 
+# TODO: make a class - use member variables for flag and revealed count
+# TODO: mine generation at first click to make sure you start on an empty space
+# TODO: buttons to start/new game instead of quitting the whole program
+# TODO: adjust board size and mine density in game
+# TODO: make it prettier
+# TODO: keep black boxes around flagged tiles to distinguish adjacent flags
+# TODO: flag counter
+# TODO: you lose/you win message on screen instead of print
+# TODO: time to completion
+# TODO: time leaderboard
+
 # game constants
 WIDTH = 10
 HEIGHT = 10
 SQUARE_SIZE = 30
-NUM_MINES = 20
+NUM_MINES = 15
 FONT_SIZE = 30
 BLACK = 0, 0, 0
 RED = 255, 0, 0
@@ -18,17 +29,12 @@ WHITE = 255, 255, 255
 BACKGROUND = 200, 200, 200
 
 
-mines_flagged = 0
-tiles_revealed = 0
-
-
-# setup pygame window
+# setup pygame
 pygame.init()
+GAME_FONT = pygame.freetype.SysFont('ubuntu', FONT_SIZE)
 size = WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE
 screen = pygame.display.set_mode(size)
 screen.fill(BACKGROUND)
-
-GAME_FONT = pygame.freetype.SysFont('ubuntu', FONT_SIZE)
 
 # init board
 board = [[Tile() for i in range(WIDTH)] for j in range(HEIGHT)]
@@ -93,7 +99,7 @@ def draw_revealed_tile(i, j):
     color = (0, 255, 0)
 
   elif mines == '3':
-    color = (255, 255, 0)
+    color = (200, 200, 0)
 
   elif mines == '4':
     color = (255, 0, 255)
@@ -120,11 +126,10 @@ def draw_revealed_tile(i, j):
 def reveal_tile(i, j):
   draw_revealed_tile(i, j)
   if board[i][j].value == ' ':
-    for r, c in get_surrounding_tiles(i,j):
+    for r, c in get_surrounding_tiles(i, j):
       if not board[r][c].revealed:
         reveal_tile(r, c)
-    
-    
+
 
 def mark_mine(i, j):
   pygame.draw.rect(screen, RED, get_rect(i, j))
@@ -147,12 +152,6 @@ for i in range(len(board)):
     pygame.draw.rect(screen, BLACK, get_rect(i, j), 1)
 
 
-# GAME_FONT.render_to(screen, (0, 0), 'test', (0, 0, 0))
-# write_to_tile(3, 4, "X", (0, 100, 0))
-# mark_mine(4, 7)
-
-# pygame.display.flip()
-
 # game event loop
 while True:
   pygame.display.flip()
@@ -163,7 +162,9 @@ while True:
     elif event.type == pygame.MOUSEBUTTONUP:
       mouse_location = pygame.mouse.get_pos()
       button = event.button
+      revealed_tiles = 0
 
+      # find the tile that was clicked on
       for i, row in enumerate(board):
         for j, tile in enumerate(row):
           square = get_rect(i, j)
@@ -171,44 +172,40 @@ while True:
 
             # left click
             if button == 1:
-              
+
               # left clicking on a flagged tile does nothing
               if tile.flagged:
                 continue
 
-              # game over if mine is clicked
+              # game over if a mine is clicked
               if tile.is_mine():
                 print('you clicked on a mine, you lose')
                 sys.exit()
 
-              # # TODO: empty space
-              # elif tile.value == '0':
-              #   # reveal then check surrounding tiles to see if they need to be revealed
-              #   pass
-
-              # space next to mine
               else:
                 reveal_tile(i, j)
 
             # right click
             elif button == 3:
-              
+
               # you can only flag tiles that arent revealed
               if not tile.revealed:
-                
+
                 # right clicking on an already flagged tile unflags it
                 if tile.flagged:
                   tile.flagged = False
-                  if tile.is_mine():
-                    mines_flagged -= 1
                   draw_hidden_tile(i, j)
-                  
+
                 else:
                   tile.flagged = True
-                  if tile.is_mine():
-                    mines_flagged += 1
                   mark_mine(i, j)
-                  
-                  if mines_flagged == NUM_MINES :
-                    print('you win!')
-                    sys.exit()
+          
+          # count number of revealed tiles
+          if tile.revealed:
+            revealed_tiles += 1
+
+      # if all possible tiles have been revealed, you win
+      if revealed_tiles == (WIDTH * HEIGHT) - NUM_MINES:
+        print('you win!')
+        sys.exit()
+          
