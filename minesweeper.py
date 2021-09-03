@@ -137,16 +137,15 @@ class Minesweeper:
     if self.board[i][j].value == ' ':
       for r, c in self.get_surrounding_tiles(i, j):
         if not self.board[r][c].revealed and not self.board[r][c].flagged:
-          print(self.board[r][c].value)
           self.reveal_tile(r, c)
 
   def draw_flagged_tile(self, i, j):
     pygame.draw.rect(self.screen, self.RED, self.get_rect(i, j))
     pygame.draw.rect(self.screen, self.BLACK, self.get_rect(i, j), 1)
 
-  def place_mines(self, initial_tile):
+  def place_mines(self, initial_i, initial_j):
     # add mines randomly, avoiding the 3x3 area around where the player first clicked
-    starting_tiles = self.get_surrounding_tiles(*initial_tile)
+    starting_tiles = self.get_surrounding_tiles(initial_i, initial_j)
 
     mines = self.NUM_MINES
     while mines > 0:
@@ -156,17 +155,15 @@ class Minesweeper:
         self.board[x][y].value = 'x'
         mines -= 1
 
-  def init_game(self):
-    self.place_mines((4, 4))
-    self.fill_tile_values()
 
+  def run_game(self):
+    mines_placed = False
+    
     # draw board
     for i in range(len(self.board)):
       for j in range(len(self.board[0])):
         pygame.draw.rect(self.screen, self.BLACK, self.get_rect(i, j), 1)
-
-  def run_game(self):
-
+        
     # game event loop
     while True:
       pygame.display.flip()
@@ -197,6 +194,12 @@ class Minesweeper:
                     sys.exit()
 
                   else:
+                    # when the player reveals the first tile, place mines
+                    if not mines_placed:
+                      self.place_mines(i, j)
+                      self.fill_tile_values()
+                      mines_placed = True
+                      
                     self.reveal_tile(i, j)
 
                 # right click
@@ -216,7 +219,7 @@ class Minesweeper:
                       self.flags_used += 1
                       self.draw_flagged_tile(i, j)
 
-          print(f"revealed tiles: {self.revealed_tiles}")
+          # print(f"revealed tiles: {self.revealed_tiles}")
           print(f"flags used: {self.flags_used}")
 
           # if all possible tiles have been revealed, you win
@@ -226,5 +229,4 @@ class Minesweeper:
 
 
 game = Minesweeper()
-game.init_game()
 game.run_game()
