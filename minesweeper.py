@@ -43,6 +43,10 @@ class Minesweeper:
     # init board
     self.board = [[Tile() for i in range(self.HEIGHT)]
                   for j in range(self.WIDTH)]
+    
+    # counters
+    self.flags_used = 0
+    self.revealed_tiles = 0
 
   def get_rect(self, i, j):
     return pygame.Rect(i*self.SQUARE_SIZE, j*self.SQUARE_SIZE, self.SQUARE_SIZE, self.SQUARE_SIZE)
@@ -123,6 +127,9 @@ class Minesweeper:
 
   def reveal_tile(self, i, j):
     self.draw_revealed_tile(i, j)
+    self.revealed_tiles += 1
+    
+    # if an empty space was revealed, recursively reveal all surrounding tiles
     if self.board[i][j].value == ' ':
       for r, c in self.get_surrounding_tiles(i, j):
         if not self.board[r][c].revealed:
@@ -162,7 +169,6 @@ class Minesweeper:
         elif event.type == pygame.MOUSEBUTTONUP:
           mouse_location = pygame.mouse.get_pos()
           button = event.button
-          revealed_tiles = 0
 
           # find the tile that was clicked on
           for i, row in enumerate(self.board):
@@ -194,18 +200,18 @@ class Minesweeper:
                     # right clicking on an already flagged tile unflags it
                     if tile.flagged:
                       tile.flagged = False
+                      self.flags_used -= 1
                       self.draw_hidden_tile(i, j)
 
                     else:
                       tile.flagged = True
+                      self.flags_used += 1
                       self.draw_flagged_tile(i, j)
 
-              # count number of revealed tiles
-              if tile.revealed:
-                revealed_tiles += 1
-
+          print(f"revealed tiles: {self.revealed_tiles}")
+          print(f"flags used: {self.flags_used}")
           # if all possible tiles have been revealed, you win
-          if revealed_tiles == (self.WIDTH * self.HEIGHT) - self.NUM_MINES:
+          if self.revealed_tiles == (self.WIDTH * self.HEIGHT) - self.NUM_MINES:
             print('you win!')
             sys.exit()
             
